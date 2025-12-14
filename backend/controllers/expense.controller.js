@@ -24,10 +24,7 @@ exports.createExpense = async (req, res, next) => {
       notes
     });
 
-    res.status(201).json({
-      success: true,
-      data: expense
-    });
+    res.status(201).json(expense);
   } catch (error) {
     next(error);
   }
@@ -49,11 +46,7 @@ exports.getExpenses = async (req, res, next) => {
       .skip((page - 1) * limit)
       .limit(Number(limit));
 
-    res.status(200).json({
-      success: true,
-      count: expenses.length,
-      data: expenses
-    });
+    res.status(200).json(expenses);
   } catch (error) {
     next(error);
   }
@@ -83,10 +76,7 @@ exports.getExpenseById = async (req, res, next) => {
       });
     }
 
-    res.status(200).json({
-      success: true,
-      data: expense
-    });
+    res.status(200).json(expense);
   } catch (error) {
     next(error);
   }
@@ -119,10 +109,7 @@ exports.updateExpense = async (req, res, next) => {
       });
     }
 
-    res.status(200).json({
-      success: true,
-      data: expense
-    });
+    res.status(200).json(expense);
   } catch (error) {
     next(error);
   }
@@ -152,10 +139,7 @@ exports.deleteExpense = async (req, res, next) => {
       });
     }
 
-    res.status(200).json({
-      success: true,
-      message: "Expense deleted successfully"
-    });
+    res.status(200).json({ message: "Expense deleted successfully" });
   } catch (error) {
     next(error);
   }
