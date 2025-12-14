@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import ExpenseForm from '@/components/ExpenseForm';
 import ExpenseList from '@/components/ExpenseList';
 import { useToast } from '@/hooks/use-toast';
@@ -19,37 +19,45 @@ const Home = () => {
   const { toast } = useToast();
 
   // Fetch all expenses on component mount
-  const fetchExpenses = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await expenseService.getAllExpenses();
-
-      // Robust check: Ensure data is an array and create a copy
-      // This prevents "(intermediate value).sort is not a function" errors
-      const expensesList = Array.isArray(data) ? data : [];
-
-      // Sort by date (newest first)
-      const sorted = [...expensesList].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
-      setExpenses(sorted);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch expenses';
-      setError(message);
-      toast({
-        title: 'Error',
-        description: message,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
-
   useEffect(() => {
-    fetchExpenses();
-  }, [fetchExpenses]);
+    let mounted = true;
+
+    const loadExpenses = async () => {
+      try {
+        if (mounted) {
+          setIsLoading(true);
+          setError(null);
+        }
+
+        const arr = await expenseService.getAllExpenses();
+        // Defensive: ensure it's an array
+        const safeArr = Array.isArray(arr) ? arr : [];
+
+        // Safe sort by date (newest first)
+        safeArr.sort((a, b) => {
+          const at = a?.date ? new Date(a.date).getTime() : 0;
+          const bt = b?.date ? new Date(b.date).getTime() : 0;
+          return bt - at;
+        });
+
+        if (mounted) setExpenses(safeArr);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to fetch expenses';
+        if (mounted) {
+          setError(message);
+          toast({ title: 'Error', description: message, variant: 'destructive' });
+        }
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
+
+    loadExpenses();
+
+    return () => {
+      mounted = false;
+    };
+  }, [toast]);
 
   // Handle form submission (create or update)
   const handleSubmit = async (expenseData: ExpenseInput) => {

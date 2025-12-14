@@ -34,15 +34,23 @@ export interface ExpenseInput {
 export const expenseService = {
   // Fetch all expenses
   getAllExpenses: async (): Promise<Expense[]> => {
-  const response = await api.get('/api/expenses');
+    const response = await api.get('/api/expenses');
 
-  // response.data = { success, count, data: [...] }
-  const payload = response.data;
+    // response.data is the payload object
+    const payload = response.data;
 
-  // Always return an array
-  return Array.isArray(payload?.data) ? payload.data : [];
-},
+    // Normalize: return the array in payload.data or [] as fallback
+    if (payload && Array.isArray(payload.data)) {
+      return payload.data as Expense[];
+    }
 
+    // If backend changed in future, handle array root too
+    if (Array.isArray(payload)) {
+      return payload as Expense[];
+    }
+
+    return [];
+  },
 
   // Fetch single expense by ID
   getExpenseById: async (id: string): Promise<Expense> => {
@@ -69,4 +77,3 @@ export const expenseService = {
 };
 
 export default expenseService;
-
