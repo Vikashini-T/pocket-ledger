@@ -26,7 +26,7 @@ app.use((err, req, res, next) => {
 const cors = require('cors');
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:8080',
   credentials: true
 }));
 
