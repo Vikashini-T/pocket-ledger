@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import ExpenseForm from '@/components/ExpenseForm';
 import ExpenseList from '@/components/ExpenseList';
 import { useToast } from '@/hooks/use-toast';
@@ -18,46 +18,33 @@ const Home = () => {
 
   const { toast } = useToast();
 
+  const loadExpenses = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const arr = await expenseService.getAllExpenses(); // guaranteed array from service
+      
+      // Defensive guard
+      const safeArr = Array.isArray(arr) ? arr : [];
+      
+      // sort by date newest first (guard missing dates)
+      safeArr.sort((a, b) => (new Date(b.date).getTime() || 0) - (new Date(a.date).getTime() || 0));
+      
+      setExpenses(safeArr);
+    } catch (err) {
+      console.error('loadExpenses error', err);
+      const message = err instanceof Error ? err.message : 'Failed to load expenses';
+      setError(message);
+      toast({ title: 'Error', description: message, variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
   // Fetch all expenses on component mount
   useEffect(() => {
-    let mounted = true;
-
-    const loadExpenses = async () => {
-      try {
-        if (mounted) {
-          setIsLoading(true);
-          setError(null);
-        }
-
-        const arr = await expenseService.getAllExpenses();
-        // Defensive: ensure it's an array
-        const safeArr = Array.isArray(arr) ? arr : [];
-
-        // Safe sort by date (newest first)
-        safeArr.sort((a, b) => {
-          const at = a?.date ? new Date(a.date).getTime() : 0;
-          const bt = b?.date ? new Date(b.date).getTime() : 0;
-          return bt - at;
-        });
-
-        if (mounted) setExpenses(safeArr);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to fetch expenses';
-        if (mounted) {
-          setError(message);
-          toast({ title: 'Error', description: message, variant: 'destructive' });
-        }
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    };
-
     loadExpenses();
-
-    return () => {
-      mounted = false;
-    };
-  }, [toast]);
+  }, [loadExpenses]);
 
   // Handle form submission (create or update)
   const handleSubmit = async (expenseData: ExpenseInput) => {
@@ -81,11 +68,21 @@ const Home = () => {
       } else {
         // Create new expense
         const created = await expenseService.createExpense(expenseData);
-        setExpenses((prev) => [created, ...prev]);
-        toast({
-          title: 'Success',
-          description: 'Expense added successfully!',
-        });
+        if (created) {
+          setExpenses((prev) => {
+            const newList = [created, ...prev];
+            // keep sorted
+            newList.sort((a, b) => (new Date(b.date).getTime() || 0) - (new Date(a.date).getTime() || 0));
+            return newList;
+          });
+          toast({
+            title: 'Success',
+            description: 'Expense added successfully!',
+          });
+        } else {
+          // fallback: reload
+          await loadExpenses();
+        }
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to save expense';

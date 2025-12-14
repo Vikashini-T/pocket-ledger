@@ -37,7 +37,7 @@ export const expenseService = {
     const response = await api.get('/api/expenses');
 
     // response.data is the payload object
-    const payload = response.data;
+    const payload = response?.data;
 
     // Normalize: return the array in payload.data or [] as fallback
     if (payload && Array.isArray(payload.data)) {
@@ -59,9 +59,19 @@ export const expenseService = {
   },
 
   // Create new expense
-  createExpense: async (expense: ExpenseInput): Promise<Expense> => {
-    const response = await api.post<Expense>('/api/expenses', expense);
-    return response.data;
+  createExpense: async (expense: ExpenseInput): Promise<Expense | null> => {
+    const response = await api.post('/api/expenses', expense);
+    const payload = response?.data;
+
+    // payload = { success, data: { ...createdItem... } }
+    if (payload && payload.data && typeof payload.data === 'object') {
+      return payload.data as Expense;
+    }
+    // fallback: maybe resp.data is the item itself
+    if (payload && typeof payload === 'object') {
+      return payload as Expense;
+    }
+    return null;
   },
 
   // Update existing expense
