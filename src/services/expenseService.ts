@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-// Configurable base URL - change this to your backend URL
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Base URL = backend origin only
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-// Create axios instance with default config
+// Axios instance
 const api = axios.create({
   baseURL: BASE_URL,
   headers: {
@@ -34,32 +34,33 @@ export interface ExpenseInput {
 export const expenseService = {
   // Fetch all expenses
   getAllExpenses: async (): Promise<Expense[]> => {
-    const response = await api.get<Expense[]>('/expenses');
+    const response = await api.get<Expense[]>('/api/expenses');
     return response.data;
   },
 
   // Fetch single expense by ID
   getExpenseById: async (id: string): Promise<Expense> => {
-    const response = await api.get<Expense>(`/expenses/${id}`);
+    const response = await api.get<Expense>(`/api/expenses/${id}`);
     return response.data;
   },
 
   // Create new expense
   createExpense: async (expense: ExpenseInput): Promise<Expense> => {
-    const response = await api.post<Expense>('/expenses', expense);
+    const response = await api.post<Expense>('/api/expenses', expense);
     return response.data;
   },
 
   // Update existing expense
   updateExpense: async (id: string, expense: ExpenseInput): Promise<Expense> => {
-    const response = await api.put<Expense>(`/expenses/${id}`, expense);
+    const response = await api.put<Expense>(`/api/expenses/${id}`, expense);
     return response.data;
   },
 
   // Delete expense
   deleteExpense: async (id: string): Promise<void> => {
-    await api.delete(`/expenses/${id}`);
+    await api.delete(`/api/expenses/${id}`);
   },
 };
 
 export default expenseService;
+
