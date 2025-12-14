@@ -9,6 +9,11 @@ app.use(express.json());
 // Routes
 app.use("/api/expenses", expenseRoutes);
 
+// Root route
+app.get('/', (req, res) => {
+  res.redirect('/api/expenses');
+});
+
 // Centralized error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
