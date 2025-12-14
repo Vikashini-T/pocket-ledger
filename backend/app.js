@@ -1,9 +1,27 @@
 const express = require("express");
 const expenseRoutes = require("./routes/expense.routes");
+const cors = require('cors');
 
 const app = express();
 
 // Middleware
+app.use(cors({
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      'http://localhost:8080',
+      'http://localhost:5173',
+      'https://pocket-ledger-a8gkmtv9s-vikashinis-projects-b530bf2a.vercel.app'
+    ];
+    
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
@@ -22,13 +40,5 @@ app.use((err, req, res, next) => {
     message: err.message || "Server Error"
   });
 });
-
-const cors = require('cors');
-
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:8080',
-  credentials: true
-}));
-
 
 module.exports = app;
