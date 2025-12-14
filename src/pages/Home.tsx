@@ -24,8 +24,13 @@ const Home = () => {
       setIsLoading(true);
       setError(null);
       const data = await expenseService.getAllExpenses();
+
+      // Robust check: Ensure data is an array and create a copy
+      // This prevents "(intermediate value).sort is not a function" errors
+      const expensesList = Array.isArray(data) ? data : [];
+
       // Sort by date (newest first)
-      const sorted = data.sort(
+      const sorted = [...expensesList].sort(
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
       );
       setExpenses(sorted);

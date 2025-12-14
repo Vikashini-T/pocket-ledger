@@ -34,9 +34,15 @@ export interface ExpenseInput {
 export const expenseService = {
   // Fetch all expenses
   getAllExpenses: async (): Promise<Expense[]> => {
-    const response = await api.get<Expense[]>('/api/expenses');
-    return response.data;
-  },
+  const response = await api.get('/api/expenses');
+
+  // response.data = { success, count, data: [...] }
+  const payload = response.data;
+
+  // Always return an array
+  return Array.isArray(payload?.data) ? payload.data : [];
+},
+
 
   // Fetch single expense by ID
   getExpenseById: async (id: string): Promise<Expense> => {
