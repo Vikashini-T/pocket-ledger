@@ -14,7 +14,10 @@ app.use(cors({
       'https://pocket-ledger-a8gkmtv9s-vikashinis-projects-b530bf2a.vercel.app'
     ];
     
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow dynamic Vercel preview URLs for your project
+    const isVercelPreview = origin && /^https:\/\/pocket-ledger-.*-vikashinis-projects-b530bf2a\.vercel\.app$/.test(origin);
+
+    if (!origin || allowedOrigins.includes(origin) || isVercelPreview) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
